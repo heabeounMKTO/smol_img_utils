@@ -122,8 +122,9 @@ typedef enum {
   HB_IMG_UTILS_FAILURE_TO_ALLOCATE_IMAGE_MEMORY
 } HbImgUtilsStatus;
 
-static inline void hb_img_util_get_error_message(const HbImgUtilsStatus status) {
-  switch(status) {
+static inline void hb_img_util_get_error_message(const HbImgUtilsStatus* status) {
+
+  switch(*status) {
     case HB_IMG_UTILS_OK:
     fprintf(stdout, "everything ok");
     break;
@@ -136,21 +137,27 @@ static inline void hb_img_util_get_error_message(const HbImgUtilsStatus status) 
   }
 }
 
-static inline void load_image(const char* filename, StbImage* img, HbImgUtilsStatus status) {
+static inline void load_image(const char* filename, StbImage* img, HbImgUtilsStatus* status) {
   int width, height, channels;
   unsigned char* _img = stbi_load(filename, &width, &height, &channels, 0);  
   if (!_img) {
     fprintf(stderr, "[ERROR] falied to load image!");
-    status = HB_IMG_UTILS_FAILURE_TO_LOAD_IMAGE;
+    *status = HB_IMG_UTILS_FAILURE_TO_LOAD_IMAGE;
+    return;
   }
   img->image = _img;
   img->width = width;
   img->channels =  channels;
   img->height = height;
-  status = HB_IMG_UTILS_OK;
+  *status = HB_IMG_UTILS_OK;
 }
 
-static inline HbImgUtilsStatus rotate_image_by_deg(const StbImage* src_image, StbImage* dst_image, const float rotation_degree, HbImgUtilsStatus status) {
+
+static inline void rotate_image_by_eye(const StbImage* src_image, StbImage* dst_image, const float left_eye[2], const float right_eye[2], HbImgUtilsStatus* status) {
+
+}
+
+static inline void rotate_image_by_deg(const StbImage* src_image, StbImage* dst_image, const float rotation_degree, HbImgUtilsStatus* status) {
   float angle_rad;
   switch((int) rotation_degree) {
     case 360:
@@ -205,7 +212,8 @@ static inline HbImgUtilsStatus rotate_image_by_deg(const StbImage* src_image, St
   // unsigned char* rotated = calloc(new_width * new_height * src_image->channels, 1);
   dst_image->image = calloc(new_width * new_height * src_image->channels, 1);
   if (!dst_image->image) {
-    status = HB_IMG_UTILS_FAILURE_TO_ALLOCATE_IMAGE_MEMORY;
+    *status = HB_IMG_UTILS_FAILURE_TO_ALLOCATE_IMAGE_MEMORY;
+    return;
   }
   float cx = src_image->width / 2.0f;
   float cy = src_image->height / 2.0f;
@@ -234,12 +242,11 @@ static inline HbImgUtilsStatus rotate_image_by_deg(const StbImage* src_image, St
         }
   }
   dst_image->channels = src_image->channels;
-  dst_image->width = new_width;
-  dst_image->height = new_height;
+  dst_image->width = (int) new_width;
+  dst_image->height = (int) new_height;
   stbi_write_png("./debug/rotated_51deg.png", new_width, new_height, src_image->channels, dst_image->image, new_width * src_image->channels);
-  status = HB_IMG_UTILS_OK;
+  *status = HB_IMG_UTILS_OK;
 }
-
 
 
 
