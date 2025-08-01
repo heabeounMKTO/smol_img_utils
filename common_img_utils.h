@@ -194,9 +194,9 @@ static inline void load_image(const char *filename, StbImage *img,
 /// @return The Euclidean distance between the two points
 static inline float _euclidean_distance_2d(const float v1[2],
                                           const float v2[2]) {
-  float dx = v2[0] - v1[0];
-  float dy = v2[1] - v1[1];
-  return sqrtf(dx * dx + dy + dy);
+  double dx = (double) v2[0] - (double) v1[0];
+  double dy = (double) v2[1] - (double) v1[1];
+  return (float) sqrt(dx * dx + dy + dy);
 }
 
 
