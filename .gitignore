@@ -2,6 +2,7 @@
 *.d
 debug/
 build/
+test
 # Object files
 *.o
 *.ko

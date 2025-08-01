@@ -146,21 +146,35 @@ static inline void load_image(const char *filename, StbImage *img,
   img->height = height;
   *status = HB_IMG_UTILS_OK;
 }
+static inline float euclidean_distance(const float v1[2], const float v2[2]) {
+  float dx = v2[0] - v1[0];
+  float dy = v2[1] - v1[1];
+  return sqrtf(dx * dx + dy + dy);
+}
 
 static inline void rotate_image_by_eye(const StbImage *src_image,
                                        StbImage *dst_image,
                                        const float left_eye[2],
                                        const float right_eye[2],
                                        HbImgUtilsStatus *status) {
+  float rotation_direction;
+  float point_3rd[2];
+  if (left_eye[1] > right_eye[1] ){
+    point_3rd[0]= right_eye[0];
+    point_3rd[1] =  left_eye[1];
+    rotation_direction = -1;
+  } else {
+    point_3rd[0]= left_eye[0];
+    point_3rd[1] =  right_eye[1];
+    rotation_direction = 1;
+  }
+
+
   float x1 = left_eye[0];
   float y1 = left_eye[1];
   float x2 = right_eye[0];
   float y2 = right_eye[1];
   
-  float dx = x2 - x1;
-  float dy = y2 - y1;
-  float angle_rad = atan2(dy, dx);
-  fprintf(stdout, "angle_rad %d", angle_rad);
 }
 
 
@@ -171,7 +185,7 @@ static inline void rotate_image_by_deg(const StbImage *src_image,
                                        const float rotation_degree,
                                        HbImgUtilsStatus *status) {
   float angle_rad;
-  switch ((int)rotation_degree) {
+  switch ((int) rotation_degree) {
   case 360:
     angle_rad = M_PI_2_F;
     break;
