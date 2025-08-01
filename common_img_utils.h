@@ -7,9 +7,9 @@
 #include "stb_image_write.h"
 
 #ifdef HB_IMG_UTILS_DEBUG
-    #define DEBUG_PRINT(fmt, ...) fprintf(stderr, "[DEBUG] %s:%d: " fmt, __FILE__, __LINE__, ##__VA_ARGS__)
-    #define DEBUG_FUNCTION() fprintf(stderr, "[DEBUG] Entering function %s\n", __FUNCTION__)
-    #define DEBUG_VAR(var) fprintf(stderr, "[DEBUG] %s = %d\n", #var, var)
+    #define DEBUG_PRINT(fmt, ...) fprintf(stderr, "[HB_IMG_UTILS] %s:%d: " fmt, __FILE__, __LINE__, ##__VA_ARGS__)
+    #define DEBUG_FUNCTION() fprintf(stderr, "[HB_IMG_UTILS] Entering function %s\n", __FUNCTION__)
+    #define DEBUG_VAR(var) fprintf(stderr, "[HB_IMG_UTILS] %s = %d\n", #var, var)
 #else
     #define DEBUG_PRINT(fmt, ...)
     #define DEBUG_FUNCTION()
