@@ -7,19 +7,22 @@
 #include "stb_image_write.h"
 
 #ifdef HB_IMG_UTILS_DEBUG
-    #define DEBUG_PRINT(fmt, ...) fprintf(stderr, "[HB_IMG_UTILS] %s:%d: " fmt, __FILE__, __LINE__, ##__VA_ARGS__)
-    #define DEBUG_FUNCTION() fprintf(stderr, "[HB_IMG_UTILS] Entering function %s\n", __FUNCTION__)
-    #define DEBUG_VAR(var) fprintf(stderr, "[HB_IMG_UTILS] %s = %d\n", #var, var)
+#define DEBUG_PRINT(fmt, ...)                                                  \
+  fprintf(stderr, "[HB_IMG_UTILS] %s:%d: " fmt, __FILE__, __LINE__,            \
+          ##__VA_ARGS__)
+#define DEBUG_FUNCTION()                                                       \
+  fprintf(stderr, "[HB_IMG_UTILS] Entering function %s\n", __FUNCTION__)
+#define DEBUG_VAR(var) fprintf(stderr, "[HB_IMG_UTILS] %s = %d\n", #var, var)
 #else
-    #define DEBUG_PRINT(fmt, ...)
-    #define DEBUG_FUNCTION()
-    #define DEBUG_VAR(var)
+#define DEBUG_PRINT(fmt, ...)
+#define DEBUG_FUNCTION()
+#define DEBUG_VAR(var)
 #endif
 
-#include <sys/stat.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 
 // maths constants
 #ifndef M_PI_F
@@ -127,13 +130,11 @@ typedef enum {
   HB_IMG_UTILS_FAILURE_PATH_NOT_EXIST
 } HbImgUtilsStatus;
 
-
-static inline int check_path_valid(const char*  path) {
+static inline int check_path_valid(const char *path) {
   struct stat st;
   if (stat(path, &st) == 0) {
     return HB_IMG_UTILS_OK;
-  }
-  else {
+  } else {
     return HB_IMG_UTILS_FAILURE_PATH_NOT_EXIST;
   }
 }
@@ -169,20 +170,19 @@ static inline void load_image(const char *filename, StbImage *img,
   img->height = height;
   *status = HB_IMG_UTILS_OK;
 }
-static inline float euclidean_distance_2d(const float v1[2], const float v2[2]) {
+static inline float euclidean_distance_2d(const float v1[2],
+                                          const float v2[2]) {
   float dx = v2[0] - v1[0];
   float dy = v2[1] - v1[1];
   return sqrtf(dx * dx + dy + dy);
 }
-
-
 
 static inline void rotate_image_by_deg(const StbImage *src_image,
                                        StbImage *dst_image,
                                        const float rotation_degree,
                                        HbImgUtilsStatus *status) {
   float angle_rad;
-  switch ((int) rotation_degree) {
+  switch ((int)rotation_degree) {
   case 360:
     angle_rad = M_PI_2_F;
     break;
@@ -227,6 +227,7 @@ static inline void rotate_image_by_deg(const StbImage *src_image,
     break;
   }
 
+
   float cos_theta = cosf(angle_rad);
   float sin_theta = sinf(angle_rad);
   float new_width = (int)(fabs(src_image->width * cos_theta) +
@@ -244,6 +245,7 @@ static inline void rotate_image_by_deg(const StbImage *src_image,
   float cy = src_image->height / 2.0f;
   float ncx = new_width / 2.0f;
   float ncy = new_height / 2.0f;
+
   for (int y = 0; y < new_height; y++) {
     for (int x = 0; x < new_width; x++) {
       // Translate to origin
@@ -272,60 +274,171 @@ static inline void rotate_image_by_deg(const StbImage *src_image,
   dst_image->channels = src_image->channels;
   dst_image->width = (int)new_width;
   dst_image->height = (int)new_height;
-  #ifdef HB_IMG_UTILS_DEBUG
-    HbImgUtilsStatus is_valid = check_path_valid("./debug");
-    if (is_valid == 0) {
-        stbi_write_png("./debug/_debug_rotate.png", new_width, new_height,
-                       src_image->channels, dst_image->image,
-                       new_width * src_image->channels);
-    } else {
-      *status = is_valid; 
-      return;
-    }
-  #endif
+#ifdef HB_IMG_UTILS_DEBUG
+  HbImgUtilsStatus is_valid = check_path_valid("./debug");
+  if (is_valid == 0) {
+    stbi_write_png("./debug/_debug_rotate.png", new_width, new_height,
+                   src_image->channels, dst_image->image,
+                   new_width * src_image->channels);
+  } else {
+    *status = is_valid;
+    return;
+  }
+#endif
   *status = HB_IMG_UTILS_OK;
 }
 
-
 /* align image by eye position */
 static inline void rotate_image_by_keypoint_pair(const StbImage *src_image,
-                                       StbImage *dst_image,
-                                       const float left_eye[2],
-                                       const float right_eye[2],
-                                       HbImgUtilsStatus *status) {
+                                                 StbImage *dst_image,
+                                                 const float left_eye[2],
+                                                 const float right_eye[2],
+                                                 HbImgUtilsStatus *status) {
   float rotation_direction;
   float point_3rd[2];
-  if (left_eye[1] > right_eye[1] ){
-    point_3rd[0]= right_eye[0];
-    point_3rd[1] =  left_eye[1];
+  if (left_eye[1] > right_eye[1]) {
+    point_3rd[0] = right_eye[0];
+    point_3rd[1] = left_eye[1];
     rotation_direction = -1;
   } else {
-    point_3rd[0]= left_eye[0];
-    point_3rd[1] =  right_eye[1];
+    point_3rd[0] = left_eye[0];
+    point_3rd[1] = right_eye[1];
     rotation_direction = 1;
   }
   float a = euclidean_distance_2d(left_eye, point_3rd);
   float b = euclidean_distance_2d(right_eye, point_3rd);
-  float c = euclidean_distance_2d(right_eye, left_eye); 
-  #ifdef HB_IMG_UTILS_DEBUG
+  float c = euclidean_distance_2d(right_eye, left_eye);
+#ifdef HB_IMG_UTILS_DEBUG
+  DEBUG_PRINT("rotate_image_by_eye 3rdpoint: %f %f\n", point_3rd[0], point_3rd[1]);
   DEBUG_PRINT("rotate_image_by_eye a: %f\n", a);
   DEBUG_PRINT("rotate_image_by_eye b: %f\n", b);
   DEBUG_PRINT("rotate_image_by_eye c: %f\n", c);
-  #endif 
+#endif
   if (b != 0.0f && c != 0.0f) {
-    float cos_a = (b * b + c *c - a * a) / (2 * b * c);
+    float cos_a = (b * b + c * c - a * a) / (2 * b * c);
     float angle = acosf(cos_a);
     angle = RAD2DEG(angle);
     if (rotation_direction == -1) {
       angle = 90 - angle;
     }
+    angle = rotation_direction * angle;
     #ifdef HB_IMG_UTILS_DEBUG
-    DEBUG_PRINT("rotate_image_by_eye final angle: %f\n", angle);
-    #endif 
-    
-    rotate_image_by_deg(src_image, dst_image, angle, status); 
+        DEBUG_PRINT("rotate_image_by_eye final angle: %f\n", angle);
+    #endif
+    float angle_rad;
+    switch ((int)angle) {
+    case 360:
+      angle_rad = M_PI_2_F;
+      break;
+    case 0:
+      angle_rad = M_PI_2_F;
+      break;
+    case 30:
+      angle_rad = M_PI_6_F;
+      break;
+    case 60:
+      angle_rad = M_PI_3_F;
+      break;
+    case 90:
+      angle_rad = M_PI_2_F;
+      break;
+    case 120:
+      angle_rad = M_2PI_3_F;
+      break;
+    case 150:
+      angle_rad = M_5PI_6_F;
+      break;
+    case 180:
+      angle_rad = M_PI_F;
+      break;
+    case 210:
+      angle_rad = M_7PI_6_F;
+      break;
+    case 240:
+      angle_rad = M_4PI_3_F;
+      break;
+    case 270:
+      angle_rad = M_3PI_2_F;
+      break;
+    case 300:
+      angle_rad = M_5PI_6_F;
+      break;
+    case 330:
+      angle_rad = M_11PI_6_F;
+      break;
+    default:
+      angle_rad = DEG2RAD(angle);
+      break;
+  } 
+
+   float cos_theta = cosf(angle_rad); 
+   float sin_theta = sinf(angle_rad);
+   float new_width = (int)(fabs(src_image->width * cos_theta) +
+                            fabs(src_image->height * sin_theta));
+   float new_height = (int)(fabs(src_image->width * sin_theta) +
+                             fabs(src_image->height * cos_theta));
+    dst_image->image = calloc(new_width * new_height * src_image->channels, 1);
+  if (!dst_image->image) {
+    *status = HB_IMG_UTILS_FAILURE_TO_ALLOCATE_IMAGE_MEMORY;
+    return;
+  }
+
+    // float cx = ( left_eye[0] + right_eye[0]) / 2.0f;
+    // float cy = (left_eye[1] + right_eye[1]) / 2.0f;
+  float cx = src_image->width / 2.0f;
+  float cy = src_image->height / 2.0f;
+
+    #ifdef HB_IMG_UTILS_DEBUG
+        DEBUG_PRINT("rotate_image_by_eye center x : %f\n", cx);
+        DEBUG_PRINT("rotate_image_by_eye center y : %f\n", cy);
+    #endif
+
+    float ncx = new_width / 2.0f;
+    float ncy = new_height / 2.0f;
+  for (int y = 0; y < new_height; y++) {
+    for (int x = 0; x < new_width; x++) {
+      // Translate to origin
+      float dx = x - ncx;
+      float dy = y - ncy;
+
+      // Rotate backward
+      float src_x = cos_theta * dx + sin_theta * dy + cx;
+      float src_y = -sin_theta * dx + cos_theta * dy + cy;
+
+      // Nearest-neighbor lookup
+      int isrc_x = (int)(src_x + 0.5f);
+      int isrc_y = (int)(src_y + 0.5f);
+
+      if (isrc_x >= 0 && isrc_x < src_image->width && isrc_y >= 0 &&
+          isrc_y < src_image->height) {
+        for (int c = 0; c < src_image->channels; c++) {
+          int dst_index = (y * new_width + x) * src_image->channels + c;
+          int src_index =
+              (isrc_y * src_image->width + isrc_x) * src_image->channels + c;
+          dst_image->image[dst_index] = src_image->image[src_index];
+        }
+      }
+    }
+  }
+  dst_image->channels = src_image->channels;
+  dst_image->width = (int)new_width;
+  dst_image->height = (int)new_height;
+#ifdef HB_IMG_UTILS_DEBUG
+  HbImgUtilsStatus is_valid = check_path_valid("./debug");
+  if (is_valid == 0) {
+    stbi_write_png("./debug/_debug_rotate.png", new_width, new_height,
+                   src_image->channels, dst_image->image,
+                   new_width * src_image->channels);
+  } else {
+    *status = is_valid;
+    return;
+  }
+#endif
+  *status = HB_IMG_UTILS_OK;
+
+
+
   }
 }
-
 
 #endif // HB_IMG_UTILS END

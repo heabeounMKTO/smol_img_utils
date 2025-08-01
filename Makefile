@@ -6,6 +6,7 @@ TARGET = test
 SRCDIR = .
 OBJDIR = obj
 BINDIR = bin
+PREPROC_FLAGS=-DHB_IMG_UTILS_DEBUG
 
 # Source files
 SOURCES = $(SRCDIR)/test.c
@@ -24,7 +25,7 @@ $(BINDIR)/$(TARGET): $(OBJECTS)
 
 # Compile source files
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(PREPROC_FLAGS) $(CFLAGS) -c $< -o $@
 
 # Clean build files
 clean:
