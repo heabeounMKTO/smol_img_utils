@@ -1,6 +1,6 @@
 # Simple Makefile
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c99
+CFLAGS = -Wall -Wextra -std=c99 -march=native
 LDFLAGS = -lm
 TARGET = test
 SRCDIR = .
