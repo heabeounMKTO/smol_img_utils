@@ -130,6 +130,15 @@ typedef enum {
   HB_IMG_UTILS_FAILURE_PATH_NOT_EXIST
 } HbImgUtilsStatus;
 
+
+
+static inline void hb_img_util_free_image(StbImage* image){
+  //later  
+}
+
+/// @brief Checks if a file path exists
+/// @param path The file path to check
+/// @return HB_IMG_UTILS_OK if path exists, HB_IMG_UTILS_FAILURE_PATH_NOT_EXIST otherwise
 static inline int check_path_valid(const char *path) {
   struct stat st;
   if (stat(path, &st) == 0) {
@@ -139,6 +148,8 @@ static inline int check_path_valid(const char *path) {
   }
 }
 
+/// @brief Prints a human-readable error message based on the status code
+/// @param status Pointer to the status code to display
 static inline void
 hb_img_util_get_error_message(const HbImgUtilsStatus *status) {
 
@@ -155,6 +166,11 @@ hb_img_util_get_error_message(const HbImgUtilsStatus *status) {
   }
 }
 
+
+/// @brief Loads an image from a file into memory
+/// @param filename The path to the image file
+/// @param img Pointer to the StbImage structure to store the loaded image
+/// @param status Pointer to store the operation status
 static inline void load_image(const char *filename, StbImage *img,
                               HbImgUtilsStatus *status) {
   int width, height, channels;
@@ -170,23 +186,32 @@ static inline void load_image(const char *filename, StbImage *img,
   img->height = height;
   *status = HB_IMG_UTILS_OK;
 }
-static inline float euclidean_distance_2d(const float v1[2],
+
+
+/// @brief Calculates the Euclidean distance between two 2D points
+/// @param v1 First point as [x, y]
+/// @param v2 Second point as [x, y]
+/// @return The Euclidean distance between the two points
+static inline float _euclidean_distance_2d(const float v1[2],
                                           const float v2[2]) {
   float dx = v2[0] - v1[0];
   float dy = v2[1] - v1[1];
   return sqrtf(dx * dx + dy + dy);
 }
 
-static inline void rotate_image_by_deg(const StbImage *src_image,
+
+/// @brief Rotates an image by a specified number of degrees
+/// @param src_image Pointer to the source image to rotate
+/// @param dst_image Pointer to the destination image structure
+/// @param rotation_degree The rotation angle in degrees
+/// @param status Pointer to store the operation status
+static inline void hb_img_rotate_image_by_deg(const StbImage *src_image,
                                        StbImage *dst_image,
                                        const float rotation_degree,
                                        HbImgUtilsStatus *status) {
   float angle_rad;
   switch ((int)rotation_degree) {
   case 360:
-    angle_rad = M_PI_2_F;
-    break;
-  case 0:
     angle_rad = M_PI_2_F;
     break;
   case 30:
@@ -288,8 +313,13 @@ static inline void rotate_image_by_deg(const StbImage *src_image,
   *status = HB_IMG_UTILS_OK;
 }
 
-/* align image by eye position */
-static inline void rotate_image_by_keypoint_pair(const StbImage *src_image,
+/// @brief Rotates an image to align keypoints (e.g., eyes)
+/// @param src_image Pointer to the source image to rotate
+/// @param dst_image Pointer to the destination image structure
+/// @param left_eye Coordinates of the left eye [x, y]
+/// @param right_eye Coordinates of the right eye [x, y]
+/// @param status Pointer to store the operation status
+static inline void hb_img_rotate_image_by_keypoint_pair(const StbImage *src_image,
                                                  StbImage *dst_image,
                                                  const float left_eye[2],
                                                  const float right_eye[2],
@@ -305,9 +335,9 @@ static inline void rotate_image_by_keypoint_pair(const StbImage *src_image,
     point_3rd[1] = right_eye[1];
     rotation_direction = 1;
   }
-  float a = euclidean_distance_2d(left_eye, point_3rd);
-  float b = euclidean_distance_2d(right_eye, point_3rd);
-  float c = euclidean_distance_2d(right_eye, left_eye);
+  float a = _euclidean_distance_2d(left_eye, point_3rd);
+  float b = _euclidean_distance_2d(right_eye, point_3rd);
+  float c = _euclidean_distance_2d(right_eye, left_eye);
 #ifdef HB_IMG_UTILS_DEBUG
   DEBUG_PRINT("rotate_image_by_eye 3rdpoint: %f %f\n", point_3rd[0], point_3rd[1]);
   DEBUG_PRINT("rotate_image_by_eye a: %f\n", a);
@@ -328,9 +358,6 @@ static inline void rotate_image_by_keypoint_pair(const StbImage *src_image,
     float angle_rad;
     switch ((int)angle) {
     case 360:
-      angle_rad = M_PI_2_F;
-      break;
-    case 0:
       angle_rad = M_PI_2_F;
       break;
     case 30:
