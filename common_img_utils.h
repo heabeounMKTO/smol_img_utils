@@ -6,6 +6,17 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
+#ifdef HB_IMG_UTILS_DEBUG
+    #define DEBUG_PRINT(fmt, ...) fprintf(stderr, "[DEBUG] %s:%d: " fmt, __FILE__, __LINE__, ##__VA_ARGS__)
+    #define DEBUG_FUNCTION() fprintf(stderr, "[DEBUG] Entering function %s\n", __FUNCTION__)
+    #define DEBUG_VAR(var) fprintf(stderr, "[DEBUG] %s = %d\n", #var, var)
+#else
+    #define DEBUG_PRINT(fmt, ...)
+    #define DEBUG_FUNCTION()
+    #define DEBUG_VAR(var)
+#endif
+
+#include <sys/stat.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -112,8 +123,20 @@ typedef struct {
 typedef enum {
   HB_IMG_UTILS_OK,
   HB_IMG_UTILS_FAILURE_TO_LOAD_IMAGE,
-  HB_IMG_UTILS_FAILURE_TO_ALLOCATE_IMAGE_MEMORY
+  HB_IMG_UTILS_FAILURE_TO_ALLOCATE_IMAGE_MEMORY,
+  HB_IMG_UTILS_FAILURE_PATH_NOT_EXIST
 } HbImgUtilsStatus;
+
+
+static inline int check_path_valid(const char*  path) {
+  struct stat st;
+  if (stat(path, &st) == 0) {
+    return HB_IMG_UTILS_OK;
+  }
+  else {
+    return HB_IMG_UTILS_FAILURE_PATH_NOT_EXIST;
+  }
+}
 
 static inline void
 hb_img_util_get_error_message(const HbImgUtilsStatus *status) {
@@ -151,32 +174,6 @@ static inline float euclidean_distance(const float v1[2], const float v2[2]) {
   float dy = v2[1] - v1[1];
   return sqrtf(dx * dx + dy + dy);
 }
-
-static inline void rotate_image_by_eye(const StbImage *src_image,
-                                       StbImage *dst_image,
-                                       const float left_eye[2],
-                                       const float right_eye[2],
-                                       HbImgUtilsStatus *status) {
-  float rotation_direction;
-  float point_3rd[2];
-  if (left_eye[1] > right_eye[1] ){
-    point_3rd[0]= right_eye[0];
-    point_3rd[1] =  left_eye[1];
-    rotation_direction = -1;
-  } else {
-    point_3rd[0]= left_eye[0];
-    point_3rd[1] =  right_eye[1];
-    rotation_direction = 1;
-  }
-
-
-  float x1 = left_eye[0];
-  float y1 = left_eye[1];
-  float x2 = right_eye[0];
-  float y2 = right_eye[1];
-  
-}
-
 
 
 
@@ -275,10 +272,56 @@ static inline void rotate_image_by_deg(const StbImage *src_image,
   dst_image->channels = src_image->channels;
   dst_image->width = (int)new_width;
   dst_image->height = (int)new_height;
-  stbi_write_png("./debug/rotated_51deg.png", new_width, new_height,
-                 src_image->channels, dst_image->image,
-                 new_width * src_image->channels);
+  #ifdef HB_IMG_UTILS_DEBUG
+    HbImgUtilsStatus is_valid = check_path_valid("./debug");
+    if (is_valid == 0) {
+        stbi_write_png("./debug/_debug_rotate.png", new_width, new_height,
+                       src_image->channels, dst_image->image,
+                       new_width * src_image->channels);
+    } else {
+      *status = is_valid; 
+      return;
+    }
+  #endif
   *status = HB_IMG_UTILS_OK;
 }
+
+
+/* align image by eye position */
+static inline void rotate_image_by_eye(const StbImage *src_image,
+                                       StbImage *dst_image,
+                                       const float left_eye[2],
+                                       const float right_eye[2],
+                                       HbImgUtilsStatus *status) {
+  float rotation_direction;
+  float point_3rd[2];
+  if (left_eye[1] > right_eye[1] ){
+    point_3rd[0]= right_eye[0];
+    point_3rd[1] =  left_eye[1];
+    rotation_direction = -1;
+  } else {
+    point_3rd[0]= left_eye[0];
+    point_3rd[1] =  right_eye[1];
+    rotation_direction = 1;
+  }
+  float a = euclidean_distance(left_eye, point_3rd);
+  float b = euclidean_distance(right_eye, point_3rd);
+  float c = euclidean_distance(right_eye, left_eye); 
+  #ifdef HB_IMG_UTILS_DEBUG
+  DEBUG_PRINT("rotate_image_by_eye a: %f\n", a);
+  DEBUG_PRINT("rotate_image_by_eye b: %f\n", b);
+  DEBUG_PRINT("rotate_image_by_eye c: %f\n", c);
+  #endif 
+  if (b != 0.0f && c != 0.0f) {
+    float cos_a = (b * b + c *c - a * a) / (2 * b * c);
+    float angle = acosf(cos_a);
+    angle = DEG2RAD(angle);
+    if (rotation_direction == -1) {
+      angle = 90 - angle;
+    }
+    rotate_image_by_deg(src_image, dst_image, rotation_direction * angle, status); 
+  }
+}
+
 
 #endif // HB_IMG_UTILS END
