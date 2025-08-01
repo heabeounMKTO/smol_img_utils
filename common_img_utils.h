@@ -169,7 +169,7 @@ static inline void load_image(const char *filename, StbImage *img,
   img->height = height;
   *status = HB_IMG_UTILS_OK;
 }
-static inline float euclidean_distance(const float v1[2], const float v2[2]) {
+static inline float euclidean_distance_2d(const float v1[2], const float v2[2]) {
   float dx = v2[0] - v1[0];
   float dy = v2[1] - v1[1];
   return sqrtf(dx * dx + dy + dy);
@@ -288,7 +288,7 @@ static inline void rotate_image_by_deg(const StbImage *src_image,
 
 
 /* align image by eye position */
-static inline void rotate_image_by_eye(const StbImage *src_image,
+static inline void rotate_image_by_keypoint_pair(const StbImage *src_image,
                                        StbImage *dst_image,
                                        const float left_eye[2],
                                        const float right_eye[2],
@@ -304,9 +304,9 @@ static inline void rotate_image_by_eye(const StbImage *src_image,
     point_3rd[1] =  right_eye[1];
     rotation_direction = 1;
   }
-  float a = euclidean_distance(left_eye, point_3rd);
-  float b = euclidean_distance(right_eye, point_3rd);
-  float c = euclidean_distance(right_eye, left_eye); 
+  float a = euclidean_distance_2d(left_eye, point_3rd);
+  float b = euclidean_distance_2d(right_eye, point_3rd);
+  float c = euclidean_distance_2d(right_eye, left_eye); 
   #ifdef HB_IMG_UTILS_DEBUG
   DEBUG_PRINT("rotate_image_by_eye a: %f\n", a);
   DEBUG_PRINT("rotate_image_by_eye b: %f\n", b);
