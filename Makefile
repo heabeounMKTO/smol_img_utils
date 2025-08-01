@@ -1,47 +1,36 @@
-# Compiler and flags
+# Simple Makefile
 CC = gcc
-CFLAGS_DEBUG = -g -Wall -O0
-CFLAGS_RELEASE = -O3 -Wall -DNDEBUG
+CFLAGS = -Wall -Wextra -std=c99
+LDFLAGS = -lm
+TARGET = test
+SRCDIR = .
+OBJDIR = obj
+BINDIR = bin
 
-# File and directory setup
-SRC = main.c test.c common_img_utils.c
-OBJ_DEBUG = $(addprefix build/debug_, $(SRC:.c=.o))
-OBJ_RELEASE = $(addprefix build/release_, $(SRC:.c=.o))
-BIN_DIR = bin
-BUILD_DIR = build
+# Source files
+SOURCES = $(SRCDIR)/test.c
+OBJECTS = $(OBJDIR)/test.o
 
-# Output binaries
-OUT_DEBUG = $(BIN_DIR)/main_debug
-OUT_RELEASE = $(BIN_DIR)/main_release
+# Default target
+all: dirs $(BINDIR)/$(TARGET)
 
-.PHONY: all debug release clean
+# Create directories
+dirs:
+	mkdir -p $(OBJDIR) $(BINDIR)
 
-all: build
+# Build the executable
+$(BINDIR)/$(TARGET): $(OBJECTS)
+	$(CC) $(OBJECTS) -o $@ $(LDFLAGS)
 
-build: release
+# Compile source files
+$(OBJDIR)/%.o: $(SRCDIR)/%.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
-debug: $(OUT_DEBUG)
-
-release: $(OUT_RELEASE)
-
-# Compile debug
-$(OUT_DEBUG): $(OBJ_DEBUG)
-	@mkdir -p $(BIN_DIR)
-	$(CC) $(OBJ_DEBUG) -o $@
-
-build/debug_%.o: %.c
-	@mkdir -p $(BUILD_DIR)
-	$(CC) $(CFLAGS_DEBUG) -c $< -o $@
-
-# Compile release
-$(OUT_RELEASE): $(OBJ_RELEASE)
-	@mkdir -p $(BIN_DIR)
-	$(CC) $(OBJ_RELEASE) -o $@
-
-build/release_%.o: %.c
-	@mkdir -p $(BUILD_DIR)
-	$(CC) $(CFLAGS_RELEASE) -c $< -o $@
-
+# Clean build files
 clean:
-	rm -rf $(BUILD_DIR) $(BIN_DIR)
+	rm -rf $(OBJDIR) $(BINDIR)
 
+# Rebuild everything
+rebuild: clean all
+
+.PHONY: all dirs clean rebuild
