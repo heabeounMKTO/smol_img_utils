@@ -315,11 +315,15 @@ static inline void rotate_image_by_eye(const StbImage *src_image,
   if (b != 0.0f && c != 0.0f) {
     float cos_a = (b * b + c *c - a * a) / (2 * b * c);
     float angle = acosf(cos_a);
-    angle = DEG2RAD(angle);
+    angle = RAD2DEG(angle);
     if (rotation_direction == -1) {
       angle = 90 - angle;
     }
-    rotate_image_by_deg(src_image, dst_image, rotation_direction * angle, status); 
+    #ifdef HB_IMG_UTILS_DEBUG
+    DEBUG_PRINT("rotate_image_by_eye final angle: %f\n", angle);
+    #endif 
+    
+    rotate_image_by_deg(src_image, dst_image, angle, status); 
   }
 }
 
