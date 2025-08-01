@@ -209,50 +209,7 @@ static inline void hb_img_rotate_image_by_deg(const StbImage *src_image,
                                        StbImage *dst_image,
                                        const float rotation_degree,
                                        HbImgUtilsStatus *status) {
-  float angle_rad;
-  switch ((int)rotation_degree) {
-  case 360:
-    angle_rad = M_PI_2_F;
-    break;
-  case 30:
-    angle_rad = M_PI_6_F;
-    break;
-  case 60:
-    angle_rad = M_PI_3_F;
-    break;
-  case 90:
-    angle_rad = M_PI_2_F;
-    break;
-  case 120:
-    angle_rad = M_2PI_3_F;
-    break;
-  case 150:
-    angle_rad = M_5PI_6_F;
-    break;
-  case 180:
-    angle_rad = M_PI_F;
-    break;
-  case 210:
-    angle_rad = M_7PI_6_F;
-    break;
-  case 240:
-    angle_rad = M_4PI_3_F;
-    break;
-  case 270:
-    angle_rad = M_3PI_2_F;
-    break;
-  case 300:
-    angle_rad = M_5PI_6_F;
-    break;
-  case 330:
-    angle_rad = M_11PI_6_F;
-    break;
-  default:
-    angle_rad = DEG2RAD(rotation_degree);
-    break;
-  }
-
-
+  float angle_rad = DEG2RAD(rotation_degree);
   float cos_theta = cosf(angle_rad);
   float sin_theta = sinf(angle_rad);
   float new_width = (int)(fabs(src_image->width * cos_theta) +
@@ -313,6 +270,7 @@ static inline void hb_img_rotate_image_by_deg(const StbImage *src_image,
   *status = HB_IMG_UTILS_OK;
 }
 
+
 /// @brief Rotates an image to align keypoints (e.g., eyes)
 /// @param src_image Pointer to the source image to rotate
 /// @param dst_image Pointer to the destination image structure
@@ -355,48 +313,7 @@ static inline void hb_img_rotate_image_by_keypoint_pair(const StbImage *src_imag
     #ifdef HB_IMG_UTILS_DEBUG
         DEBUG_PRINT("rotate_image_by_eye final angle: %f\n", angle);
     #endif
-    float angle_rad;
-    switch ((int)angle) {
-    case 360:
-      angle_rad = M_PI_2_F;
-      break;
-    case 30:
-      angle_rad = M_PI_6_F;
-      break;
-    case 60:
-      angle_rad = M_PI_3_F;
-      break;
-    case 90:
-      angle_rad = M_PI_2_F;
-      break;
-    case 120:
-      angle_rad = M_2PI_3_F;
-      break;
-    case 150:
-      angle_rad = M_5PI_6_F;
-      break;
-    case 180:
-      angle_rad = M_PI_F;
-      break;
-    case 210:
-      angle_rad = M_7PI_6_F;
-      break;
-    case 240:
-      angle_rad = M_4PI_3_F;
-      break;
-    case 270:
-      angle_rad = M_3PI_2_F;
-      break;
-    case 300:
-      angle_rad = M_5PI_6_F;
-      break;
-    case 330:
-      angle_rad = M_11PI_6_F;
-      break;
-    default:
-      angle_rad = DEG2RAD(angle);
-      break;
-  } 
+    float angle_rad = DEG2RAD(angle);
 
    float cos_theta = cosf(angle_rad); 
    float sin_theta = sinf(angle_rad);
