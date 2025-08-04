@@ -1,4 +1,4 @@
-#include "common_img_utils.h"
+#include "hb_img_utils.h"
 #include <stdlib.h>
 
 /* [DEBUG] test_keypoints:
